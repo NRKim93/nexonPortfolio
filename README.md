@@ -207,7 +207,6 @@ Local PC → Git Push → GitHub Actions → Docker Compose 실행 → Spring Bo
 
 | Code        | HTTP Status | Message                      |
 | ----------- | ----------: | ---------------------------- |
-| SUCCESS     |         200 | OK                           |
 | ERR-001     |         400 | BAD REQUEST                  |
 | ERR-003     |         500 | INTERNAL SERVER ERROR        |
 | ERR-004     |         999 | UNKNOWN ERROR                |
