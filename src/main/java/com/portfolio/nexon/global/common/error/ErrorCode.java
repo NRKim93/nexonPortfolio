@@ -2,7 +2,6 @@ package com.portfolio.nexon.global.common.error;
 
 public enum ErrorCode {
 
-	SUCCESS("SUCCESS", 200, "OK"),
 	BAD_REQUEST("ERR-001", 400, "BAD REQUEST"),
 	INTERNAL_SERVER_ERROR("ERR-003", 500, "INTERNAL SERVER ERROR"),
 	UNKNOWN_ERROR("ERR-004", 999, "UNKNOWN ERROR"),
