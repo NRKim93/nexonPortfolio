@@ -43,8 +43,3 @@ springdoc:
 
 server:
   port: 8080
-
-jwt:
-  secret: ${JWT_SECRET:local-development-jwt-secret-key-for-nexon-portfolio}
-  access-token-validity-in-seconds: 1800
-  refresh-token-validity-in-seconds: 1209600
