@@ -58,18 +58,17 @@ AGENTS.md
 6. 공통 예외 작성
 7. GlobalExceptionHandler 작성
 8. Entity / Repository 작성
-9. Security / JWT 기본 구조 작성
-10. 관리자 로그인 API 구현
-11. OAuth 로그인 API 구현
+9. Security / API Key 인증 기본 구조 작성
+10. Client ID / API Key 검증 구조 구현
+11. 관리자 로그인 API 구현
 12. 계정 조회 / 유저 닉네임 수정
-13. OAuth 계정 연동
-14. 계정 상태 변경
-15. 캐시 아이템 조회
-16. 구매 요청
-17. 구매 이력 조회
-18. 청약철회
-19. 관리자 결제 내역 조회
-20. 감사 로그 조회
+13. 계정 상태 변경
+14. 캐시 아이템 조회
+15. 구매 요청
+16. 구매 이력 조회
+17. 청약철회
+18. 관리자 결제 내역 조회
+19. 감사 로그 조회
 
 현재 우선순위에 없는 기능은 먼저 구현하지 않는다.
 
@@ -88,7 +87,7 @@ com.example.gameplatform
 │  │  └─ error
 │  ├─ exception
 │  └─ security
-│     ├─ jwt
+│     ├─ apikey
 │     └─ config
 │
 ├─ domain
@@ -114,7 +113,7 @@ com.example.gameplatform
 * 전역 공통 기능은 `global` 하위에 둔다.
 * 도메인별 기능은 `domain.{도메인명}` 하위에 둔다.
 * 인증/인가 공통 처리는 `global.security`에 둔다.
-* 로그인 요청 처리처럼 도메인 흐름에 가까운 기능은 `domain.auth`에 둔다.
+* API Key 검증, 인증 토큰 발급, 관리자 로그인처럼 인증 흐름에 가까운 기능은 `domain.auth`에 둔다.
 * 테스트 패키지는 운영 코드 패키지 구조와 최대한 동일하게 맞춘다.
 
 ---
@@ -181,13 +180,17 @@ com.example.gameplatform
 
 ## 7. 보안 구현 기준
 
-* JWT 기반 인증 구조를 사용한다.
-* Access Token과 Refresh Token을 구분한다.
+* 화면단이 없는 API 서버 성격을 고려하여 OAuth 로그인은 우선 구현 범위에서 제외한다.
+* 외부 서비스 또는 클라이언트 서버는 Client ID / API Key로 식별한다.
+* API Key는 평문 저장을 피하고, 해시 또는 암호화 저장 방식을 고려한다.
+* API Key는 요청 Header로 전달하는 방식을 우선 고려한다.
+* 예시 Header는 `X-Client-Id`, `X-Api-Key`를 사용한다.
+* 필요한 경우 Client ID / API Key 검증 후 내부 Access Token을 발급하는 구조를 사용할 수 있다.
 * USER와 ADMIN 권한을 분리한다.
-* 관리자 로그인과 유저 OAuth 로그인은 억지로 하나의 흐름으로 합치지 않는다.
+* 관리자 로그인은 별도 username/password 기반 API로 분리한다.
 * 인증 실패는 인증 실패 에러 코드로 처리한다.
 * 권한 부족은 권한 부족 에러 코드로 처리한다.
-* JWT Secret, OAuth Client Secret, DB Password 등 민감 정보는 코드에 직접 작성하지 않는다.
+* API Key, JWT Secret, DB Password 등 민감 정보는 코드에 직접 작성하지 않는다.
 * 보안 관련 설정은 실제 운영 설정을 추측해서 작성하지 않는다.
 
 ---
@@ -203,7 +206,7 @@ com.example.gameplatform
 3. BusinessException 테스트
 4. GlobalExceptionHandler 테스트
 5. 관리자 로그인 API 테스트
-6. OAuth 로그인 API 테스트
+6. Client ID / API Key 인증 테스트
 7. 계정 조회 / 닉네임 수정 테스트
 8. 계정 상태 변경 테스트
 9. 상품 조회 테스트
@@ -235,7 +238,7 @@ com.example.gameplatform
 * 인증 실패 시 `AUTH-001` 응답이 내려가는지
 * 권한 부족 시 `AUTH-002` 응답이 내려가는지
 * 존재하지 않는 계정 조회 시 `ACCOUNT-001` 응답이 내려가는지
-* 이미 연동된 OAuth 계정이면 `ACCOUNT-002` 응답이 내려가는지
+* 이미 등록된 Client ID / API Key이면 `ACCOUNT-002` 응답이 내려가는지
 * 판매 중지 상품 구매 시 `BILLING-002` 응답이 내려가는지
 * 이미 환불된 구매 건이면 `REFUND-002` 응답이 내려가는지
 * 관리자 권한이 필요한 API에 USER 권한으로 접근할 수 없는지
@@ -245,7 +248,7 @@ com.example.gameplatform
 
 * 테스트명은 어떤 상황에서 어떤 결과를 기대하는지 드러나게 작성한다.
 * given / when / then 흐름을 유지한다.
-* 외부 OAuth 제공자, 실제 결제 PG, 실제 Redis, 실제 AWS에 의존하는 테스트는 기본 단위 테스트에서 제외한다.
+* 실제 결제 PG, 실제 Redis, 실제 AWS에 의존하는 테스트는 기본 단위 테스트에서 제외한다.
 * 외부 연동은 Mock 또는 Fake 객체로 대체한다.
 * 테스트를 위해 운영 코드를 과도하게 열어두지 않는다.
 * 포트폴리오에서 설명 가능한 핵심 테스트를 우선한다.
@@ -453,7 +456,7 @@ docker-compose.prod.yml
 
 민감 정보 처리 기준은 아래를 따른다.
 
-* DB 비밀번호, JWT Secret, OAuth Secret, AWS Access Key는 코드에 직접 작성하지 않는다.
+* DB 비밀번호, JWT Secret, API Key, AWS Access Key는 코드에 직접 작성하지 않는다.
 * 예시가 필요한 경우 `example`, `sample`, `dummy` 값을 사용한다.
 * 실제 운영 설정을 추측해서 작성하지 않는다.
 * 설정값이 필요한 경우 README.md에 환경 변수 이름만 문서화한다.
@@ -479,6 +482,7 @@ application-secret.example.yml
 * 알림 기능 구현
 * 결제 PG 실제 연동
 * OAuth 제공자별 실제 외부 API 연동 세부 구현
+* OAuth 로그인 구현
 * 프론트엔드 구현
 * 과도한 추상화
 * 사용하지 않는 공통 클래스 선생성
@@ -527,7 +531,11 @@ AGENTS.md 기준으로 기본 패키지 구조를 생성해줘.
 ```
 
 ```text
-관리자 로그인 API의 Controller, Service, DTO 기본 구조를 만들어줘. 실제 JWT 구현은 다음 단계로 미뤄줘.
+Client ID / API Key 인증을 위한 Request DTO, Service, 인증 Filter 기본 구조를 만들어줘.
+```
+
+```text
+관리자 로그인 API의 Controller, Service, DTO 기본 구조를 만들어줘. 실제 토큰 발급 구현은 다음 단계로 미뤄줘.
 ```
 
 ```text

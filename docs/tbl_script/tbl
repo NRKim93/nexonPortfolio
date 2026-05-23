@@ -1,0 +1,75 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table accounts {
+  id bigint [pk, increment]
+  username varchar [not null]
+  email varchar
+  status char [not null, default: '0', note: '0: ACTIVE, 1: DORMANT, 2: SUSPENDED, 3: DELETED']
+  tier char [not null, default: '0', note: '0: NORMAL, 1: PREMIUM, 2: VIP']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table oauth_accounts {
+  id bigint [pk, increment]
+  account_id bigint [not null]
+  provider varchar [not null, note: 'NAVER / GOOGLE / KAKAO']
+  provider_user_id varchar [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table admin_credentials {
+  id bigint [pk, increment]
+  username varchar [not null, unique]
+  pw varchar [not null]
+  role char [default: 'ADMIN']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table products {
+  id bigint [pk, increment]
+  name varchar [not null]
+  product_type varchar [not null, note: 'SINGLE / PACKAGE']
+  price int [not null]
+  description text
+  status varchar [not null, note: 'ON_SALE / STOPPED']
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table purchases {
+  id bigint [pk, increment]
+  account_id bigint [not null]
+  product_id bigint [not null]
+  purchase_status varchar [not null, note: 'PENDING / PAID / FAILED / CANCELED / REFUND_REQUESTED / REFUNDED']
+  amount int [not null]
+  refund_reason varchar
+  purchased_at timestamp
+  refund_requested_at timestamp
+  refunded_at timestamp
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table audit_logs {
+  id bigint [pk, increment]
+  log_type tinyint [not null, note: '0: ACCOUNT, 1: BILLING, 2: SECURITY, 3: REPORT, 4: SANCTION']
+  actor_type tinyint [not null, note: '0: ACCOUNT, 1: ADMIN, 2: SYSTEM']
+  actor_id bigint [not null]
+  target_type tinyint [not null, note: '0: ACCOUNT, 1: PRODUCT, 2: PURCHASE, 3: REPORT, 4: SANCTION']
+  target_id bigint [not null]
+  action_type tinyint [not null, note: '0: LOGIN, 1: LOGOUT, 2: STATUS_CHANGED, 3: PURCHASE_CREATED, 4: PAYMENT_SUCCESS, 5: PAYMENT_FAIL, 6: REFUND_REQUESTED, 7: REFUND_COMPLETED, 8: ABNORMAL_DETECTED, 9: REPORT_CREATED, 10: SANCTION_REQUESTED, 11: SANCTION_APPROVED, 12: SANCTION_REJECTED']
+  result_type tinyint [not null, note: '0: SUCCESS, 1: FAIL, 2: DETECTED, 3: REQUESTED, 4: PROCESSED']
+  ip_address varchar
+  user_agent varchar
+  detail text
+  created_at timestamp [not null]
+}
+
+Ref: oauth_accounts.account_id > accounts.id
+Ref: purchases.account_id > accounts.id
+Ref: purchases.product_id > products.id
+

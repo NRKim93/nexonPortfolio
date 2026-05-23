@@ -301,19 +301,26 @@ docker compose up -d
 3. 공통 응답 DTO 작성
 4. 공통 에러코드 enum 작성
 5. 공통 예외 / 예외 핸들러 작성
-6. Entity / Repository 작성
-7. Security / JWT 기본 구조 작성
-8. 관리자 로그인 구현
-9. OAuth 로그인 구현
-10. 계정 조회 / 유저 닉네임 수정
-11. OAuth 계정 연동
-12. 계정 상태 변경
-13. 캐시 아이템 조회
-14. 구매 요청
-15. 구매 이력 조회
-16. 청약철회
-17. 관리자 결제 내역 조회
-18. 감사 로그 조회
+6. Security / JWT 기본 구조 작성
+7. 공통 인증 Principal 작성
+8. 권한 / Role enum 작성
+9. 공통 JPA Base Entity 작성
+10. JPA Auditing 설정
+11. 공통 인증 유틸 작성
+12. Redis 설정 정리
+13. Swagger / OpenAPI 설정
+14. Entity / Repository 작성
+15. 관리자 로그인 구현
+16. OAuth 로그인 구현
+17. 계정 조회 / 유저 닉네임 수정
+18. OAuth 계정 연동
+19. 계정 상태 변경
+20. 캐시 아이템 조회
+21. 구매 요청
+22. 구매 이력 조회
+23. 청약철회
+24. 관리자 결제 내역 조회
+25. 감사 로그 조회
 
 ---
 
@@ -321,19 +328,19 @@ docker compose up -d
 
 | 태그             | 설명                             |
 | -------------- | ------------------------------ |
-| `[feature :]`  | 기능 개발                          |
-| `[fix :]`      | 버그 수정                          |
-| `[refactor :]` | 리팩토링                           |
-| `[docs :]`     | 문서 수정                          |
-| `[test :]`     | 테스트 코드                         |
-| `[style :]`    | 코드 포맷팅, 오타, 세미콜론 등 로직 변화 없는 수정 |
-| `[chore :]`    | 기타 작업                          |
+| `feature :`    | 기능 개발                          |
+| `fix :`        | 버그 수정                          |
+| `refactor :`   | 리팩토링                           |
+| `docs :`       | 문서 수정                          |
+| `test :`       | 테스트 코드                         |
+| `style :`      | 코드 포맷팅, 오타, 세미콜론 등 로직 변화 없는 수정 |
+| `chore :`      | 기타 작업                          |
 
 ### 예시
 
 ```bash
-git commit -m "[feature :] 프로젝트 초기 설정 및 공통 응답 구조 추가"
-git commit -m "[feature :] 관리자 로그인 API 기본 구조 구현"
+git commit -m "feature : 프로젝트 초기 설정 및 공통 응답 구조 추가"
+git commit -m "feature : 관리자 로그인 API 기본 구조 구현"
 ```
 
 ---
@@ -347,10 +354,18 @@ git commit -m "[feature :] 관리자 로그인 API 기본 구조 구현"
 * [x] Spring Boot 프로젝트 생성
 * [x] Git 원격 저장소 연결
 * [x] `git pull origin main` 완료
-* [ ] 기본 패키지 구조 생성
-* [ ] 공통 응답 DTO 작성
-* [ ] 공통 에러코드 enum 작성
-* [ ] 공통 예외 / 예외 핸들러 작성
+* [x] 기본 패키지 구조 생성
+* [x] 공통 응답 DTO 작성
+* [x] 공통 에러코드 enum 작성
+* [x] 공통 예외 / 예외 핸들러 작성
+* [x] Security / JWT 기본 구조 작성
+* [ ] 공통 인증 Principal 작성
+* [ ] 권한 / Role enum 작성
+* [ ] 공통 JPA Base Entity 작성
+* [ ] JPA Auditing 설정
+* [ ] 공통 인증 유틸 작성
+* [ ] Redis 설정 정리
+* [ ] Swagger / OpenAPI 설정
 * [ ] 관리자 로그인 API 기본 구조 구현
 
 ---
