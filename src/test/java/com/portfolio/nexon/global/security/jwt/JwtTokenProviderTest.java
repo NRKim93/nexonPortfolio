@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 class JwtTokenProviderTest {
 
 	private final JwtTokenProvider jwtTokenProvider = new JwtTokenProvider(
-		new JwtProperties("test-secret-key-for-jwt-token-provider", 1800, 1209600),
+		new JwtProperties("test-secret-key-for-jwt-token-provider", 1800),
 		new ObjectMapper()
 	);
 

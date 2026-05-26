@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class JwtAuthenticationFilterTest {
 
 	private final JwtTokenProvider jwtTokenProvider = new JwtTokenProvider(
-		new JwtProperties("test-secret-key-for-jwt-authentication-filter", 1800, 1209600),
+		new JwtProperties("test-secret-key-for-jwt-authentication-filter", 1800),
 		new ObjectMapper()
 	);
 	private final JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtTokenProvider);
