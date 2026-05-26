@@ -2,35 +2,21 @@ spring:
   application:
     name: nexon
 
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
   jpa:
+    open-in-view: false
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         use_sql_comments: true
+
   data:
     redis:
-      host: localhost
-      port: 6379
-
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: ${GOOGLE_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
-            authorization-grant-type: authorization_code
-            scope:
-              - profile
-              - email
-        provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
-            token-uri: https://oauth2.googleapis.com/token
-            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
-            user-name-attribute: sub
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 springdoc:
   api-docs:
@@ -42,4 +28,8 @@ springdoc:
     display-request-duration: true
 
 server:
-  port: 8080
+  port: 9080
+
+jwt:
+  secret: ${JWT_SECRET:local-development-jwt-secret-key-for-nexon-portfolio}
+  access-token-validity-in-seconds: ${JWT_ACCESS_TOKEN_VALIDITY_IN_SECONDS:1800}

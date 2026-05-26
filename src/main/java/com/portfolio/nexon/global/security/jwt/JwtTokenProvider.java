@@ -37,10 +37,6 @@ public class JwtTokenProvider {
 		return createToken(subject, roles, jwtProperties.accessTokenValidityInSeconds());
 	}
 
-	public String createRefreshToken(String subject) {
-		return createToken(subject, List.of(), jwtProperties.refreshTokenValidityInSeconds());
-	}
-
 	public boolean validateToken(String token) {
 		try {
 			Map<String, Object> payload = parsePayload(token);
