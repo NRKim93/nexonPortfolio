@@ -1,5 +1,6 @@
 package com.portfolio.nexon.global.security.config;
 
+import com.portfolio.nexon.global.security.apikey.ApiKeyAuthenticationFilter;
 import com.portfolio.nexon.global.security.handler.JwtAccessDeniedHandler;
 import com.portfolio.nexon.global.security.handler.JwtAuthenticationEntryPoint;
 import com.portfolio.nexon.global.security.jwt.JwtAuthenticationFilter;
@@ -31,6 +32,7 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(
 		HttpSecurity http,
+		ApiKeyAuthenticationFilter apiKeyAuthenticationFilter,
 		JwtAuthenticationFilter jwtAuthenticationFilter,
 		JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
 		JwtAccessDeniedHandler jwtAccessDeniedHandler
@@ -46,9 +48,11 @@ public class SecurityConfig {
 			)
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(PERMIT_ALL_URLS).permitAll()
+				.requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 				.anyRequest().authenticated()
 			)
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(apiKeyAuthenticationFilter, JwtAuthenticationFilter.class)
 			.build();
 	}
 

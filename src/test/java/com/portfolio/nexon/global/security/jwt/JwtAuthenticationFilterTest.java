@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 class JwtAuthenticationFilterTest {
@@ -52,5 +53,17 @@ class JwtAuthenticationFilterTest {
 		filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
 
 		assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo("account-1");
+	}
+
+	@Test
+	void requestWithExistingAuthenticationSkipsJwtAuthentication() throws Exception {
+		SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("client-1", ""));
+		String token = jwtTokenProvider.createAccessToken("account-1", List.of("ROLE_USER"));
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.addHeader("Authorization", "Bearer " + token);
+
+		filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+
+		assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo("client-1");
 	}
 }
