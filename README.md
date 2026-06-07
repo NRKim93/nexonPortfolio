@@ -2,7 +2,7 @@
 
 게임 서비스에서 반복적으로 필요한 인증, 계정, 빌링, 운영 기능을 공통 API로 분리한 Spring Boot 기반 백엔드 포트폴리오 프로젝트입니다.
 
-본 프로젝트는 일반 유저 기능과 관리자 기능을 역할에 따라 분리하고, OAuth 로그인, 관리자 로그인, 계정 상태 관리, 상품 조회, 구매, 청약철회, 감사 로그 조회 기능을 하나의 공통 서비스 API 서버로 구성하는 것을 목표로 합니다.
+본 프로젝트는 외부 게임 서비스 또는 연동 시스템을 API Client로 식별하고, 인증/인가, 계정, 빌링, 운영 기능을 하나의 공통 서비스 API 서버로 구성하는 것을 목표로 합니다.
 
 ---
 
@@ -12,16 +12,18 @@
 
 * 게임 서비스에서 공통적으로 필요한 인증, 계정, 빌링, 운영 기능을 API 서버로 분리
 * 일반 유저와 관리자 기능을 역할 기반으로 분리
-* JWT 기반 인증/인가 구조 구현
-* OAuth 계정 연동과 관리자 계정 인증 구조 분리
+* Client ID + API Key 기반 API Client 인증 구조 구현
+* Access Token 기반 Bearer 인증/인가 구조 구현
+* USER / ADMIN 역할 기반 API 권한 분리
+* OAuth 계정 연동과 관리자 계정 인증 구조는 후순위 기능으로 분리
 * 구매, 청약철회, 감사 로그 등 운영 관점의 핵심 기능 구현
 * AWS 기반 배포 구조와 CI/CD 흐름 구성
 
 ### 주요 기능
 
-* 유저 OAuth 로그인
-* 관리자 폼 로그인
-* JWT 기반 인증
+* API Client 등록
+* Client ID + API Key 기반 Access Token 발급
+* Bearer Token 기반 보호 API 인증
 * USER / ADMIN 역할 기반 권한 분리
 * 유저 계정 조회 및 닉네임 수정
 * 외부 OAuth 계정 추가 연동
@@ -44,7 +46,7 @@
 | Database  | MySQL                                                |
 | Cache     | Redis                                                |
 | ORM       | Spring Data JPA                                      |
-| Security  | Spring Security, OAuth2, JWT                         |
+| Security  | Spring Security, JWT                                 |
 | API Docs  | OpenAPI / Swagger UI                                 |
 | Infra     | AWS EC2, AWS RDS, VPC, Public Subnet, Private Subnet |
 | DevOps    | GitHub Actions, Docker Compose, Terraform            |
@@ -95,10 +97,18 @@ Local PC → Git Push → GitHub Actions → Docker Compose 실행 → Spring Bo
 
 ### 인증 / 인가
 
-* OAuth 기반 유저 로그인
-* 관리자 username/password 기반 폼 로그인
-* JWT Access Token / Refresh Token 발급
-* USER / ADMIN 역할 기반 권한 분리
+현재 구현 기준은 API Client 인증이다.
+
+```text
+Client ID + API Key -> Access Token 발급 -> Authorization: Bearer <token>
+```
+
+* `api_clients` 테이블에 API 호출 주체를 저장한다.
+* API Key 원문은 저장하지 않고 SHA-256 hash만 저장한다.
+* `POST /api/v1/auth/token`에서 `clientId`, `apiKey`를 검증한 뒤 Access Token을 발급한다.
+* 보호 API는 `Authorization: Bearer <accessToken>` 헤더로 인증한다.
+* `USER`, `ADMIN` 역할 기반으로 일반 API와 관리자 API 접근을 분리한다.
+* Refresh Token, OAuth 로그인, 관리자 username/password 로그인은 아직 구현 범위에 포함하지 않는다.
 
 ### 계정
 
@@ -146,6 +156,7 @@ Local PC → Git Push → GitHub Actions → Docker Compose 실행 → Spring Bo
 
 | 테이블               | 설명                        |
 | ----------------- | ------------------------- |
+| api_clients       | API 호출 주체와 API Key hash 정보 |
 | accounts          | 서비스 내부 유저 계정 정보           |
 | oauth_accounts    | 외부 OAuth 제공자와 내부 계정 연결 정보 |
 | admin_credentials | 관리자 로그인 정보                |
@@ -161,10 +172,22 @@ Local PC → Git Push → GitHub Actions → Docker Compose 실행 → Spring Bo
 
 ## 7. API 목록
 
+### 현재 구현 API
+
+| 기능 | Method | URL | 설명 |
+| --- | --- | --- | --- |
+| API Client 등록 | POST | `/api/v1/admin/api-clients` | 관리자 권한으로 API Client 생성 |
+| Access Token 발급 | POST | `/api/v1/auth/token` | `clientId + apiKey` 검증 후 Bearer Token 발급 |
+| API Client 인증 확인 | GET | `/api/v1/api-clients/auth-check` | local/test profile 확인용 일반 보호 API |
+| 관리자 API Client 인증 확인 | GET | `/api/v1/admin/api-clients/auth-check` | local/test profile 확인용 관리자 보호 API |
+
+### 후순위 API 후보
+
 | 기능          | Method | URL                                              | 설명                |
 | ----------- | ------ | ------------------------------------------------ | ----------------- |
 | OAuth 로그인   | POST   | `/api/v1/auth/oauth/login`                       | 유저 OAuth 로그인      |
 | 관리자 로그인     | POST   | `/api/v1/auth/admin/login`                       | 관리자 폼 로그인         |
+| API Key 재발급 | POST   | `/api/v1/admin/api-clients/{clientId}/api-key/rotate` | API Key 재발급 |
 | 계정 조회       | GET    | `/api/v1/admin/users/{userId}`                   | 관리자용 유저 정보 조회     |
 | 유저 정보 수정    | PUT    | `/api/v1/users/{userId}`                         | 유저 닉네임 수정         |
 | OAuth 계정 연동 | POST   | `/api/v1/users/{userId}/oauth-accounts`          | 외부 OAuth 계정 추가 연동 |
@@ -228,20 +251,23 @@ Local PC → Git Push → GitHub Actions → Docker Compose 실행 → Spring Bo
 ## 10. 패키지 구조
 
 ```text
-com.example.gameplatform
+com.portfolio.nexon
 ├─ global
 │  ├─ common
 │  │  ├─ response
 │  │  └─ error
 │  ├─ exception
 │  └─ security
+│     ├─ apikey
 │     ├─ jwt
 │     └─ config
 │
 ├─ domain
-│  ├─ auth
+│  ├─ apiclient
 │  │  ├─ controller
 │  │  ├─ service
+│  │  ├─ repository
+│  │  ├─ entity
 │  │  └─ dto
 │  ├─ account
 │  │  ├─ controller
@@ -253,7 +279,7 @@ com.example.gameplatform
 │  ├─ purchase
 │  └─ audit
 │
-└─ GamePlatformApplication
+└─ NexonApplication
 ```
 
 ---
@@ -273,6 +299,16 @@ com.example.gameplatform
 ```bash
 ./gradlew bootRun
 ```
+
+local profile에서는 인증 테스트용 API Client가 자동 생성된다.
+
+| 용도 | clientId | apiKey |
+| --- | --- | --- |
+| 일반 client | `test-user-client` | `test-user-api-key` |
+| 관리자 client | `test-admin-client` | `test-admin-api-key` |
+| 비활성 client | `test-disabled-client` | `test-disabled-api-key` |
+
+Postman 테스트 순서는 [docs/test/api-client-auth-postman-test-order.md](docs/test/api-client-auth-postman-test-order.md)를 따른다.
 
 ### 테스트 실행
 
@@ -302,25 +338,29 @@ docker compose up -d
 4. 공통 에러코드 enum 작성
 5. 공통 예외 / 예외 핸들러 작성
 6. Security / JWT 기본 구조 작성
-7. 공통 인증 Principal 작성
-8. 권한 / Role enum 작성
-9. 공통 JPA Base Entity 작성
-10. JPA Auditing 설정
-11. 공통 인증 유틸 작성
-12. Redis 설정 정리
-13. Swagger / OpenAPI 설정
-14. Entity / Repository 작성
-15. 관리자 로그인 구현
-16. OAuth 로그인 구현
-17. 계정 조회 / 유저 닉네임 수정
-18. OAuth 계정 연동
-19. 계정 상태 변경
-20. 캐시 아이템 조회
-21. 구매 요청
-22. 구매 이력 조회
-23. 청약철회
-24. 관리자 결제 내역 조회
-25. 감사 로그 조회
+7. API Client Entity / Repository / Service 작성
+8. API Key 생성 / 해시 / 검증 유틸 작성
+9. API Client 등록 API 구현
+10. Client ID + API Key 기반 Access Token 발급 API 구현
+11. Bearer Token 기반 보호 API 인증 검증
+12. README 및 테스트 문서 정리
+13. API Key 재발급 API 구현
+14. 인증 실패 응답 및 감사 로그 정책 정리
+15. Redis 기반 인증 캐시 도입
+16. Redis 기반 실패 횟수 제한 도입
+17. IP allowlist 검증
+18. Swagger / OpenAPI 설정
+19. OAuth 로그인 구현
+20. 관리자 로그인 구현
+21. 계정 조회 / 유저 닉네임 수정
+22. OAuth 계정 연동
+23. 계정 상태 변경
+24. 캐시 아이템 조회
+25. 구매 요청
+26. 구매 이력 조회
+27. 청약철회
+28. 관리자 결제 내역 조회
+29. 감사 로그 조회
 
 ---
 
@@ -359,12 +399,17 @@ git commit -m "feature : 관리자 로그인 API 기본 구조 구현"
 * [x] 공통 에러코드 enum 작성
 * [x] 공통 예외 / 예외 핸들러 작성
 * [x] Security / JWT 기본 구조 작성
-* [ ] 공통 인증 Principal 작성
-* [ ] 권한 / Role enum 작성
-* [ ] 공통 JPA Base Entity 작성
-* [ ] JPA Auditing 설정
-* [ ] 공통 인증 유틸 작성
-* [ ] Redis 설정 정리
+* [x] 공통 JPA Base Entity 작성
+* [x] JPA Auditing 설정
+* [x] API Client Entity / Repository / Service 작성
+* [x] API Key 생성 / 해시 / 검증 유틸 작성
+* [x] API Client 등록 API 구현
+* [x] Client ID + API Key 기반 Access Token 발급 API 구현
+* [x] Bearer Token 기반 보호 API 인증 테스트 작성
+* [x] Postman 인증 테스트 순서 문서 작성
+* [ ] API Key 재발급 API 구현
+* [ ] 인증 실패 응답 및 감사 로그 정책 정리
+* [ ] Redis 인증 캐시 도입
 * [ ] Swagger / OpenAPI 설정
 * [ ] 관리자 로그인 API 기본 구조 구현
 
