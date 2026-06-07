@@ -60,6 +60,14 @@ public class ApiClient extends BaseEntity {
 		this.status = status;
 	}
 
+	public void rotateApiKeyHash(String apiKeyHash) {
+		if (!StringUtils.hasText(apiKeyHash)) {
+			throw new IllegalArgumentException("API key hash must not be empty");
+		}
+
+		this.apiKeyHash = apiKeyHash;
+	}
+
 	public boolean isActive() {
 		return status == ApiClientStatus.ACTIVE;
 	}

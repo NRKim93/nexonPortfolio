@@ -1,10 +1,12 @@
 package com.portfolio.nexon.domain.apiclient.controller;
 
+import com.portfolio.nexon.domain.apiclient.dto.ApiClientApiKeyRotateResponse;
 import com.portfolio.nexon.domain.apiclient.dto.ApiClientCreateRequest;
 import com.portfolio.nexon.domain.apiclient.dto.ApiClientCreateResponse;
 import com.portfolio.nexon.domain.apiclient.service.ApiClientService;
 import com.portfolio.nexon.global.common.response.CommonResponse;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,5 +23,10 @@ public class ApiClientAdminController {
 	@PostMapping("/api/v1/admin/api-clients")
 	public CommonResponse<ApiClientCreateResponse> create(@Valid @RequestBody ApiClientCreateRequest request) {
 		return CommonResponse.success(apiClientService.create(request));
+	}
+
+	@PostMapping("/api/v1/admin/api-clients/{clientId}/api-key/rotate")
+	public CommonResponse<ApiClientApiKeyRotateResponse> rotateApiKey(@PathVariable("clientId") String clientId) {
+		return CommonResponse.success(apiClientService.rotateApiKey(clientId));
 	}
 }

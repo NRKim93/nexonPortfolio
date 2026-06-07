@@ -16,6 +16,7 @@ import com.portfolio.nexon.global.common.error.ErrorCode;
 import com.portfolio.nexon.global.exception.BusinessException;
 import com.portfolio.nexon.global.security.apikey.ApiKeyGenerator;
 import com.portfolio.nexon.global.security.apikey.ApiKeyHasher;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -89,5 +90,34 @@ class ApiClientServiceTest {
 			.isInstanceOf(BusinessException.class)
 			.extracting("errorCode")
 			.isEqualTo(ErrorCode.CLIENT_ALREADY_EXISTS);
+	}
+
+	@Test
+	void rotateApiKeyReturnsPlainApiKeyOnceAndReplacesHash() {
+		ApiClient apiClient = new ApiClient(
+			"game-service-a",
+			apiKeyHasher.hash("old-api-key"),
+			"game-service-a",
+			ApiClientRole.USER
+		);
+		when(apiClientRepository.findByClientId("game-service-a")).thenReturn(Optional.of(apiClient));
+		when(apiKeyGenerator.generate()).thenReturn("new-api-key");
+
+		var response = apiClientService.rotateApiKey("game-service-a");
+
+		assertThat(response.clientId()).isEqualTo("game-service-a");
+		assertThat(response.apiKey()).isEqualTo("new-api-key");
+		assertThat(apiKeyHasher.matches("old-api-key", apiClient.getApiKeyHash())).isFalse();
+		assertThat(apiKeyHasher.matches("new-api-key", apiClient.getApiKeyHash())).isTrue();
+	}
+
+	@Test
+	void rotateApiKeyRejectsUnknownClient() {
+		when(apiClientRepository.findByClientId("unknown-client")).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> apiClientService.rotateApiKey("unknown-client"))
+			.isInstanceOf(BusinessException.class)
+			.extracting("errorCode")
+			.isEqualTo(ErrorCode.CLIENT_NOT_FOUND);
 	}
 }

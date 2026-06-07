@@ -1,5 +1,6 @@
 package com.portfolio.nexon.domain.apiclient.service;
 
+import com.portfolio.nexon.domain.apiclient.dto.ApiClientApiKeyRotateResponse;
 import com.portfolio.nexon.domain.apiclient.dto.ApiClientCreateRequest;
 import com.portfolio.nexon.domain.apiclient.dto.ApiClientCreateResponse;
 import com.portfolio.nexon.domain.apiclient.entity.ApiClient;
@@ -65,6 +66,17 @@ public class ApiClientService {
 			DEFAULT_ALLOWED_IPS,
 			savedApiClient.getCreatedAt()
 		);
+	}
+
+	@Transactional
+	public ApiClientApiKeyRotateResponse rotateApiKey(String clientId) {
+		ApiClient apiClient = apiClientRepository.findByClientId(clientId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.CLIENT_NOT_FOUND));
+
+		String apiKey = apiKeyGenerator.generate();
+		apiClient.rotateApiKeyHash(apiKeyHasher.hash(apiKey));
+
+		return new ApiClientApiKeyRotateResponse(apiClient.getClientId(), apiKey);
 	}
 
 	public ApiClient authenticate(String clientId, String apiKey) {
